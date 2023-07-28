@@ -1,4 +1,4 @@
-# dLotto Game
+# Lottery Game for EVM
 
 ```shell
 git clone
