@@ -1,8 +1,8 @@
-# dLottery Game
+# dLotto Game
 
 ```shell
 git clone
-cd dlottery
+cd dlotto
 npm install
 npx hardhat test
 ```
