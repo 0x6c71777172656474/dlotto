@@ -1,4 +1,7 @@
 import { ethers } from "hardhat";
+import { utils } from "ethers";
+
+type ticketArray = string[] | number[];
 
 /**
  * Mines a new block with optional sleep duration.
@@ -31,3 +34,19 @@ export function onlyUnique(
 ): boolean {
   return array.indexOf(value) === index;
 }
+
+export function arraysEqualWithDifferentIndexes(
+  arr1: ticketArray,
+  arr2: ticketArray
+) {
+  if (arr1.length !== arr2.length) {
+    return false;
+  }
+
+  const sortedArr1 = arr1.slice().sort();
+  const sortedArr2 = arr2.slice().sort();
+
+  return sortedArr1.every((element, index) => element === sortedArr2[index]);
+}
+
+export const toWei18 = (value: string) => utils.parseUnits(value, 18);

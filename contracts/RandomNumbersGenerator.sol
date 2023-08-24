@@ -2,16 +2,24 @@
 pragma solidity ^0.8.9;
 
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
-
+import "@openzeppelin/contracts/access/Ownable.sol";
+import {Roles} from "./lib/Roles.sol";
 import "../contracts/lib/Errors.sol";
 import "../contracts/lib/Constants.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-contract Randomizer is VRFConsumerBaseV2 {
+contract RandomNumbersGenerator is
+    VRFConsumerBaseV2,
+    Ownable,
+    AccessControl,
+    ReentrancyGuard
+{
     uint16 requestConfirmations = 3;
     uint64 s_subscriptionId;
     uint256[] public requestIds;
-    uint256 public lastRequestId;
+    uint256 lastRequestId;
     VRFCoordinatorV2Interface immutable COORDINATOR;
 
     struct RequestStatus {
@@ -35,6 +43,7 @@ contract Randomizer is VRFConsumerBaseV2 {
 
     // numWords = N;
     // callBackGaslimit = N * 100000;
+    //@TODO protect it via role checker or somehow
     function requestRandomWords(
         uint32 numWords
     ) external returns (uint requestId) {
@@ -42,7 +51,7 @@ contract Randomizer is VRFConsumerBaseV2 {
             Constants.KEY_HASH,
             s_subscriptionId,
             requestConfirmations,
-            numWords*100000,
+            numWords * 100000,
             numWords
         );
 
@@ -62,11 +71,15 @@ contract Randomizer is VRFConsumerBaseV2 {
     function fulfillRandomWords(
         uint256 requestId,
         uint256[] memory randomWords
-    ) internal override {
+    ) internal virtual override {
         require(s_requests[requestId].exist, Errors.REQUEST_NOT_FOUND);
         s_requests[requestId].fulfilled = true;
         s_requests[requestId].randomWords = randomWords;
         emit RequestFulfilled(requestId, randomWords);
+    }
+
+    function getLastRequestId() public view returns (uint256) {
+        return lastRequestId;
     }
 
     function getRequestStatus(
